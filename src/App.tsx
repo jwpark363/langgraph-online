@@ -1,7 +1,6 @@
 import styled from "styled-components"
 import Logo from "./components/logo";
-import Canvas from "./graph/graph_canvas";
-// import { Canvas } from "./components/svg/canvas";
+import Canvas from "./graph/canvas";
 
 const MainBox = styled.div`
   width: 100hw;

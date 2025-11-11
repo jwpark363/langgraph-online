@@ -4,7 +4,8 @@ import { type GraphNode } from './langgraph';
 import { Rect, Text, Polygon } from '../components/svg_components';
 import { useAtom } from 'jotai';
 import { GraphNodesAtom } from '../atom';
-import CanvasHeader from './graph_header';
+import CanvasHeader from './header';
+import NodeInfo from './detail';
 interface ViewBox {
   x: number;
   y: number;
@@ -47,14 +48,16 @@ export default function Canvas() {
     const [panStart, setPanStart] = useState<Point>({ x: 0, y: 0 });
     const [draggedRect, setDraggedRect] = useState<string | null>(null);
     const [dragStart, setDragStart] = useState<Point>({ x: 0, y: 0 });
-    // 기본 노드
+      const [isDragging, setIsDragging] = useState<boolean>(false);
+    // 기본 노드 리스트
     const [nodes, setNodeRects] = useAtom(GraphNodesAtom);
+    // 선택 노드
+    const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
   // SVG 좌표로 변환
   const screenToSvg = (screenX: number, screenY: number): Point => {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0 };
-    
     const pt = svg.createSVGPoint();
     pt.x = screenX;
     pt.y = screenY;
@@ -67,13 +70,11 @@ export default function Canvas() {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 1.1 : 0.9;
     const mouse = screenToSvg(e.clientX, e.clientY);
-    
     setViewBox(prev => {
       const newWidth = prev.width * delta;
       const newHeight = prev.height * delta;
       const newX = mouse.x - (mouse.x - prev.x) * delta;
       const newY = mouse.y - (mouse.y - prev.y) * delta;
-      
       return { x: newX, y: newY, width: newWidth, height: newHeight };
     });
   };
@@ -81,8 +82,9 @@ export default function Canvas() {
   // SVG 패닝 시작
   const handleSvgMouseDown = (e: React.MouseEvent<SVGSVGElement>): void => {
     const target = e.target as SVGElement;
-    // rect가 아닌 경우에만 SVG 패닝 시작
-    if (target.tagName !== 'rect' || target.getAttribute('width') === '100%') {
+    // rect, polygon이 아닌 경우에만 SVG 패닝 시작
+    if ((target.tagName !== 'rect' && target.tagName !== 'polygon' )
+        || target.getAttribute('width') === '100%') {
       setIsPanning(true);
       const svgPt = screenToSvg(e.clientX, e.clientY);
       setPanStart(svgPt);
@@ -93,6 +95,7 @@ export default function Canvas() {
   const handleRectMouseDown = (e: React.MouseEvent<SVGElement>, node: GraphNode): void => {
     e.stopPropagation();
     setDraggedRect(node.id);
+    setIsDragging(false);
     const svgPt = screenToSvg(e.clientX, e.clientY);
     setDragStart({ x: svgPt.x - node.rect.x, y: svgPt.y - node.rect.y });
   };
@@ -110,8 +113,8 @@ export default function Canvas() {
         y: prev.y + dy
       }));
     }
-    
     if (draggedRect !== null) {
+      setIsDragging(true);
       setNodeRects(prev => prev.map(node => 
         node.id === draggedRect
           ? { ...node, rect:{...node.rect, x: svgPt.x - dragStart.x, y: svgPt.y - dragStart.y }}
@@ -122,8 +125,17 @@ export default function Canvas() {
 
   // 마우스 업
   const handleMouseUp = (): void => {
+    // 드래그하지 않았으면 클릭으로 간주
+    if (draggedRect !== null && !isDragging) {
+      const node = nodes.find(n => n.id === draggedRect);
+      if (node) {
+        setSelectedNode(node);
+      }
+    }
+
     setIsPanning(false);
     setDraggedRect(null);
+    setIsDragging(false);
   };
 
   useEffect(() => {
@@ -170,6 +182,7 @@ export default function Canvas() {
                            ${node.rect.x + node.rect.width / 2},${node.rect.y + node.rect.height} 
                            ${node.rect.x},${node.rect.y + node.rect.height / 2}`}
                   fill={node.rect.fill}
+                  $dragging={draggedRect === node.id}
                   onMouseDown={(e) => handleRectMouseDown(e, node)}
                 /> :
                 <Rect
@@ -193,11 +206,13 @@ export default function Canvas() {
           ))}
         </StyledSvg>
       </SvgContainer>
-      
-      <Footer>
+     <Footer>
         <span>ViewBox: ({viewBox.x.toFixed(0)}, {viewBox.y.toFixed(0)}) - {viewBox.width.toFixed(0)}×{viewBox.height.toFixed(0)}</span>
         <span>Zoom: {(800 / viewBox.width * 100).toFixed(0)}%</span>
       </Footer>
+      {selectedNode && (
+        <NodeInfo node={selectedNode} onClick={() => setSelectedNode(null)}/>
+      )}
     </MainBox>
   );
 }
