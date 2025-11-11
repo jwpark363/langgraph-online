@@ -20,7 +20,7 @@ interface RectProps{
 }
 
 const Rect = styled.rect<RectProps>`
-    rx:${BaseLine.round};
+    rx:${props => props.$nodetype === 'start' || props.$nodetype === 'end' ? BaseLine.round : 0};
     ry:${BaseLine.round};
     cursor: ${props => props.$dragging ? 'grabbing' : 'grab'};
     opacity: ${props => props.$dragging ? 0.7 : 1};
@@ -34,8 +34,8 @@ const Text = styled.text`
     user-select: none;
     text-anchor: middle;
     fill:white;
-    font-size:14;
-    font-weight:bold;
+    /* font-size:14; */
+    /* font-weight:bold; */
     dominant-baseline:middle;
 `;
 const Polygon = styled.polygon<RectProps>`
@@ -46,4 +46,11 @@ const Polygon = styled.polygon<RectProps>`
     stroke:${props => props.$stroke ? props.$stroke : BaseLine.stroke};
     stroke-width:2;
 `;
-export {Rect, Text, Polygon}
+const Path = styled.path<RectProps>`
+    fill: none;
+    stroke:${props => props.$stroke ? props.$stroke : BaseLine.stroke};
+    stroke-width:2;
+    marker-end: url(#arrowhead);
+`;
+
+export {Rect, Text, Polygon, Path}

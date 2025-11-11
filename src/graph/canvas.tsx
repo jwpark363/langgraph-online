@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import { type GraphNode } from './langgraph';
-import { Rect, Text, Polygon } from '../components/svg_components';
+import { NodeEdgePoint, type GraphNode } from './langgraph';
+import { Rect, Text, Polygon, Path } from '../components/svg_components';
 import { useAtom } from 'jotai';
 import { GraphNodesAtom } from '../atom';
 import CanvasHeader from './header';
@@ -48,12 +48,12 @@ export default function Canvas() {
     const [panStart, setPanStart] = useState<Point>({ x: 0, y: 0 });
     const [draggedRect, setDraggedRect] = useState<string | null>(null);
     const [dragStart, setDragStart] = useState<Point>({ x: 0, y: 0 });
-      const [isDragging, setIsDragging] = useState<boolean>(false);
+    const [isDragging, setIsDragging] = useState<boolean>(false);
     // 기본 노드 리스트
     const [nodes, setNodeRects] = useAtom(GraphNodesAtom);
     // 선택 노드
     const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-
+  // console.log('nodes', nodes);
   // SVG 좌표로 변환
   const screenToSvg = (screenX: number, screenY: number): Point => {
     const svg = svgRef.current;
@@ -146,6 +146,14 @@ export default function Canvas() {
     }
   }, [viewBox]);
 
+  const nodePath = (node: GraphNode): string => {
+    console.log(node);
+    const parent_node = nodes.find(n => n.id === node.parentId);
+    if (!parent_node) return '';
+    const point_from = NodeEdgePoint(parent_node, node.rect.parentEdgePoint); // from 노드의 하단 중앙
+    const point_to = NodeEdgePoint(node, node.rect.edgePoint);     // to 노드의 상단 중앙
+    return `M ${point_from.x} ${point_from.y} L ${point_to.x} ${point_to.y}`;
+  }
   return (
     <MainBox>
       <CanvasHeader />
@@ -181,7 +189,6 @@ export default function Canvas() {
                            ${node.rect.x + node.rect.width},${node.rect.y + node.rect.height / 2} 
                            ${node.rect.x + node.rect.width / 2},${node.rect.y + node.rect.height} 
                            ${node.rect.x},${node.rect.y + node.rect.height / 2}`}
-                  fill={node.rect.fill}
                   $dragging={draggedRect === node.id}
                   onMouseDown={(e) => handleRectMouseDown(e, node)}
                 /> :
@@ -190,7 +197,6 @@ export default function Canvas() {
                   y={node.rect.y}
                   width={node.rect.width}
                   height={node.rect.height}
-                  // transform={"rotate(90 0 0)"}
                   $dragging={draggedRect === node.id}
                   $nodetype={node.type}
                   onMouseDown={(e) => handleRectMouseDown(e, node)}
@@ -199,9 +205,15 @@ export default function Canvas() {
               <Text
                 x={node.rect.x + node.rect.width / 2}
                 y={node.rect.y + node.rect.height / 2}
+                fontSize={node.type==='condition'?'12pt':'14pt'}
               >
                 {node.name}
               </Text>
+              {(node.parentId !== undefined || node.parentId !== null) ? (
+                <Path
+                  d={nodePath(node)}
+                  />
+              ) : null}
             </g>
           ))}
         </StyledSvg>

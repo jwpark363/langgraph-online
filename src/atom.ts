@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import {v4 as uuidv4} from 'uuid';
 import type { GraphNode } from "./graph/langgraph";
+import { atomWithStorage } from "jotai/utils";
 
 // 기본 노드
 const DefaultNodes:GraphNode[] = [{
@@ -26,5 +27,5 @@ const UpdateGraphNode = (nodes:GraphNode[], updated_node:GraphNode):GraphNode[] 
     return nodes.map(node => node.id === updated_node.id ? updated_node : node);
 }
 
-const GraphNodesAtom = atom<GraphNode[]>(DefaultNodes);
+const GraphNodesAtom = atomWithStorage<GraphNode[]>("langgraph",DefaultNodes);
 export { GraphNodesAtom, AddGraphNode, RemoveGraphNode, UpdateGraphNode };
