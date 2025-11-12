@@ -95,7 +95,8 @@ export default function CanvasHeader(){
           <Title>LangGraph pseudo code 작성기</Title>
           <Instructions>
             <p onClick={handle_node_add}>🤖 <strong>Node 추가</strong></p>
-            <p onClick={handle_condition_add}>🧞 <strong>Condition 추가:</strong></p>
+            <p onClick={handle_condition_add}>🧞 <strong>Condition 추가</strong></p>
+            <p>✏️ <strong>Python Code</strong></p>
           </Instructions>
         </HeaderLeft>
         <HeaderRight>

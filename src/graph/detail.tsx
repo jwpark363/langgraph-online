@@ -3,6 +3,7 @@ import type { GraphNode } from "./langgraph"
 import { useAtom } from "jotai";
 import { GraphNodesAtom } from "../atom";
 import { useState } from "react";
+import ConditionDetail from "./condition_detail";
 
 const MainBox = styled.div<{$x?:number, $y?:number}>`
   position: fixed;
@@ -169,7 +170,7 @@ export default function NodeInfo({node, onClick}:NodeProps){
           {node.type === 'condition' && (
             <Row>
               <Label>조건부 :</Label>
-              <Value>{node.conditions && ''}</Value>
+              <Value>{node.conditions && <ConditionDetail conditions={node.conditions} />}</Value>
             </Row>
           )}
           <Button onClick={onClick}> Close </Button>
