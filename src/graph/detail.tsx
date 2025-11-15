@@ -98,13 +98,13 @@ export default function NodeInfo({node, onClick}:NodeProps){
 
   const handleUpdate = () => {
       //노드 업데이트
-      console.log('update node');
+      // console.log('update node');
       const node_name = (document.getElementById('node_name') as HTMLInputElement).value;
       const parent_id = (document.getElementById('parent_id') as HTMLSelectElement).value;
       const edge_point = (document.getElementById('edge_point') as HTMLInputElement).value;
       const parent_edge_point = (document.getElementById('parent_edge_point') as HTMLInputElement).value;
-      console.log('edge_point', edge_point);
-      console.log('parent_edge_point', parent_edge_point);
+      // console.log('edge_point', edge_point);
+      // console.log('parent_edge_point', parent_edge_point);
       const updated_node:GraphNode = {
         ...node,
         name: node_name,
@@ -169,8 +169,8 @@ export default function NodeInfo({node, onClick}:NodeProps){
           </Row>
           {node.type === 'condition' && (
             <Row>
-              <Label>조건부 :</Label>
-              <Value>{node.conditions && <ConditionDetail conditions={node.conditions} />}</Value>
+              <Label>Conditions :</Label>
+              <Value>{node.conditions && <ConditionDetail node={node} />}</Value>
             </Row>
           )}
           <Button onClick={onClick}> Close </Button>

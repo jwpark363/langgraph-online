@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import { NodeEdgePoint, type GraphNode } from './langgraph';
-import { Rect, Text, Polygon, Path } from '../components/svg_components';
+import { NodeEdgePoint, type Condition, type GraphNode } from './langgraph';
+import { Rect, Text, Polygon, Path, ArcPath } from '../components/svg_components';
 import { useAtom } from 'jotai';
 import { GraphNodesAtom } from '../atom';
 import CanvasHeader from './header';
@@ -147,12 +147,21 @@ export default function Canvas() {
   }, [viewBox]);
 
   const nodePath = (node: GraphNode): string => {
-    console.log(node);
+    // console.log(node);
     const parent_node = nodes.find(n => n.id === node.parentId);
     if (!parent_node) return '';
     const point_from = NodeEdgePoint(parent_node, node.rect.parentEdgePoint); // from 노드의 하단 중앙
     const point_to = NodeEdgePoint(node, node.rect.edgePoint);     // to 노드의 상단 중앙
     return `M ${point_from.x} ${point_from.y} L ${point_to.x} ${point_to.y}`;
+  }
+  const arcPath = (node: GraphNode, condition: Condition): string => {
+    const next_node = nodes.find(n => n.id === condition.nextNodeId);
+    if (!next_node) return '';
+    const point_from = NodeEdgePoint(node, condition.edgePoint); // from 노드의 하단 중앙
+    const point_to = NodeEdgePoint(next_node, condition.nextEdgePoint);     // to 노드의 상단 중앙
+    return `M ${point_from.x} ${point_from.y} 
+            A 100 100 0 0 ${point_from.y+50 >= point_to.y ? 0 : 1}
+            ${point_to.x} ${point_to.y}`;
   }
   return (
     <MainBox>
@@ -214,6 +223,14 @@ export default function Canvas() {
                   d={nodePath(node)}
                   />
               ) : null}
+              {(node.conditions !== undefined && node.conditions.length > 0) ? (
+                node.conditions.map((cond,i) => 
+                <ArcPath key={i}
+                  d={arcPath(node, cond)}
+                  radius={100}
+                  isClockwise={true}
+                />)
+              ) : null }
             </g>
           ))}
         </StyledSvg>

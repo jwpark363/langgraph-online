@@ -52,5 +52,10 @@ const Path = styled.path<RectProps>`
     stroke-width:2;
     marker-end: url(#arrowhead);
 `;
+const ArcPath = styled.path<RectProps>`
+    fill: none;
+    stroke:${props => props.$stroke ? props.$stroke : BaseLine.stroke};
+    stroke-width:2;
+`;
 
-export {Rect, Text, Polygon, Path}
+export {Rect, Text, Polygon, Path, ArcPath}
